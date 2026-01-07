@@ -1,0 +1,381 @@
+---
+title: "Analyse Nucléaire Mondiale"
+subtitle: "WebR & Data Science Interactive"
+author: "WIEM HEMDI"
+date: "Janvier 2026"
+format: 
+  revealjs:
+    slide-number: true
+    controls: true
+    progress: true
+    transition: slide
+    theme: sky
+    background-transition: slide
+    center: true
+    footer: "WIEM HEMDI | Ingénierie Data Science & IA"
+    chalkboard: false
+    logo: https://cdn-icons-png.flaticon.com/512/1998/1998610.png
+    css: custom-slides.css
+engine: knitr
+filters:
+  - webr
+webr:
+  packages:
+    - dplyr
+    - ggplot2
+    - knitr
+    - DT
+---
+
+## 🌍 Introduction {background-color="#2E86AB"}
+
+::: {.columns}
+::: {.column width="50%"}
+### Analyse des Données Nucléaires Mondiales
+
+- **Projet** : Pipeline complet d'analyse
+- **Tech** : WebR (R dans le navigateur)
+- **Objectif** : Visualisations interactives
+- **Portfolio** : Compétences Data Science
+:::
+
+:::
+
+---
+
+## 🎯 Objectifs du Projet {background-color="#f8f9fa"}
+
+### 📊 Analyse Multi-sources
+
+1. Production nucléaire mondiale (1965-2022)
+2. Statistiques énergétiques complètes
+3. Données économiques (PIB)
+4. Investissements énergie
+5. Commerce international
+
+### 🔧 Démonstration Technique
+
+✅ Exécution R dans le navigateur  
+✅ Visualisations interactives  
+✅ Pipeline reproductible  
+✅ Rapport professionnel
+
+---
+
+## 🏗️ Architecture Technique
+
+```{webr-r}
+cat("🏗️ ARCHITECTURE TECHNIQUE\n")
+cat("========================\n\n")
+
+tech_stack <- data.frame(
+  Composant = c("Frontend", "Backend", "Viz", "Analyse", "Deploy"),
+  Technologie = c("HTML/CSS/JS", "WebR", "ggplot2", "tidyverse", "Quarto"),
+  Rôle = c("Interface", "Exécution R", "Graphiques", "Data", "Hébergement")
+)
+
+library(knitr)
+kable(tech_stack, caption = "Stack technique")
+```
+
+---
+
+## 🔄 Pipeline de Traitement {background-image="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1920"}
+
+::: {style="background: rgba(255,255,255,0.9); padding: 30px; border-radius: 15px;"}
+### Workflow en 6 Étapes
+
+1. 📥 **Import** : Chargement multi-sources
+2. 🧹 **Nettoyage** : Validation et préparation
+3. 🔗 **Fusion** : Jointures et harmonisation
+4. 📊 **Analyse** : Statistiques descriptives
+5. 📈 **Visualisation** : Graphiques interactifs
+6. 📄 **Rapport** : Synthèse professionnelle
+:::
+
+---
+
+## 🌐 Démonstration WebR Live {background-color="#f0f8ff"}
+
+### Code R exécutable dans le navigateur
+
+```{webr-r}
+# Création de données de démonstration
+demo_data <- data.frame(
+  Pays = c("France", "États-Unis", "Chine", "Allemagne", "Japon"),
+  Production_2020 = c(338.7, 809.4, 344.7, 60.9, 43.1),
+  Part_Monde = c(14.2, 33.9, 14.5, 2.6, 1.8)
+)
+
+cat("📊 PRODUCTION NUCLÉAIRE 2020\n")
+cat("===========================\n\n")
+
+library(knitr)
+kable(demo_data,
+      col.names = c("Pays", "Production (TWh)", "Part (%)"),
+      digits = 1)
+```
+
+---
+
+## 📈 Visualisation Interactive
+
+```{webr-r}
+library(ggplot2)
+library(dplyr)
+
+viz_data <- demo_data %>%
+  mutate(Pays = factor(Pays, levels = Pays[order(Production_2020)]))
+
+ggplot(viz_data, aes(x = Pays, y = Production_2020, fill = Pays)) +
+  geom_bar(stat = "identity", width = 0.7, alpha = 0.9) +
+  geom_text(aes(label = paste0(round(Production_2020), " TWh")), 
+            hjust = -0.1, size = 4) +
+  scale_fill_brewer(palette = "Set2") +
+  coord_flip() +
+  labs(
+    title = "Production Nucléaire 2020",
+    x = "", y = "Production (TWh)"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "none") +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.15)))
+```
+
+---
+
+## 🏆 Résultats Clés {background-color="#fff"}
+
+::: {layout="[[1,1], [1,1]]"}
+::: {style="background: #e8f4f8; padding: 20px; border-radius: 10px;"}
+### 📈 Production
+
+**2,500 TWh/an**  
+≈ 10% électricité mondiale
+:::
+
+::: {style="background: #e8f8f4; padding: 20px; border-radius: 10px;"}
+### 🌍 Concentration
+
+**10 pays** = 85%  
+USA & France leaders
+:::
+
+::: {style="background: #fff8e8; padding: 20px; border-radius: 10px;"}
+### 💰 Corrélations
+
+**Relation positive**  
+PIB ↔ Nucléaire
+:::
+
+::: {style="background: #f8e8e8; padding: 20px; border-radius: 10px;"}
+### 📊 Investissements
+
+**+15%** depuis 2015  
+Post-Fukushima
+:::
+:::
+
+---
+
+## 🎨 Mix Énergétique Mondial
+
+```{webr-r}
+energy_mix <- data.frame(
+  Source = c("Nucléaire", "Hydro", "Solaire", "Éolien", "Gaz", "Charbon"),
+  Part = c(10.1, 16.2, 3.2, 6.6, 23.4, 40.5)
+)
+
+energy_colors <- c(
+  "Nucléaire" = "#2E86AB", "Hydro" = "#118AB2",
+  "Solaire" = "#FFD166", "Éolien" = "#06D6A0",
+  "Gaz" = "#EF476F", "Charbon" = "#073B4C"
+)
+
+ggplot(energy_mix, aes(x = "", y = Part, fill = Source)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar("y", start = 0) +
+  scale_fill_manual(values = energy_colors) +
+  labs(title = "Mix Énergétique Mondial 2020") +
+  theme_void(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5, size = 18),
+    legend.position = "right"
+  )
+```
+
+---
+
+## 🔗 Navigation Projet {background-color="#f8f9fa"}
+
+::: {layout="[[1,1], [1,1]]"}
+::: {style="text-align: center; padding: 20px; background: white; border-radius: 10px;"}
+### 📥 Import
+Chargement données  
+[Voir la page →](pipeline/01_import.html)
+:::
+
+::: {style="text-align: center; padding: 20px; background: white; border-radius: 10px;"}
+### 🧹 Nettoyage
+Traitement données  
+[Voir la page →](pipeline/02_nettoyage.html)
+:::
+
+::: {style="text-align: center; padding: 20px; background: white; border-radius: 10px;"}
+### 📈 Analyse
+Visualisations  
+[Voir la page →](pipeline/03_analyse.html)
+:::
+
+::: {style="text-align: center; padding: 20px; background: white; border-radius: 10px;"}
+### 📊 Rapport
+Synthèse complète  
+[Voir la page →](rapport.html)
+:::
+:::
+
+---
+
+## 👩‍💻 Compétences Développées
+
+```{webr-r}
+skills <- data.frame(
+  Catégorie = c("Langages", "Data Science", "Visualisation", "Dev", "Outils"),
+  Technologies = c(
+    "R, SQL, Python, HTML/CSS",
+    "tidyverse, WebR, Stats",
+    "ggplot2, plotly, D3.js",
+    "Quarto, Git, CI/CD",
+    "RStudio, VS Code, GitHub"
+  ),
+  Niveau = c("Avancé", "Expert", "Avancé", "Intermédiaire", "Avancé")
+)
+
+kable(skills, caption = "Stack technique maîtrisée")
+```
+
+---
+
+## 🚀 Déploiement {background-color="#f0f8ff"}
+
+::: {layout="[1,1,1]"}
+::: {style="text-align: center; padding: 25px; background: #24292e; color: white; border-radius: 10px;"}
+### 🐙 GitHub Pages
+Hébergement gratuit  
+Automatique via Actions
+:::
+
+::: {style="text-align: center; padding: 25px; background: #0066cc; color: white; border-radius: 10px;"}
+### 🔗 Netlify
+Déploiement continu  
+CDN global
+:::
+
+::: {style="text-align: center; padding: 25px; background: #ff9900; border-radius: 10px;"}
+### 📧 PDF Export
+Version imprimable  
+Portfolio offline
+:::
+:::
+
+---
+
+## 📞 Contact & Liens {background-color="#2E86AB" background-image="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920"}
+
+::: {style="background: rgba(255,255,255,0.95); padding: 40px; border-radius: 15px;"}
+### 👤 WIEM HEMDI
+**Étudiante en Ingénierie Data Science & IA**
+
+📧 **Email** : wiem.hemdi@polytechnicien.tn  
+📱 **Tél** : +216 93 753 648  
+💼 **LinkedIn** : linkedin.com/in/wiem-hemdi  
+💻 **GitHub** : github.com/Wiem-hemdi
+
+🎓 **Formation** : École Polytechnique de Sousse (2024-Présent)
+:::
+
+---
+
+## 🎯 Conclusion {background-color="#f0fff0"}
+
+::: {layout="[1,1]"}
+::: {style="padding: 20px;"}
+### ✅ Réalisations
+
+- Pipeline complet d'analyse
+- WebR fonctionnel navigateur
+- Visualisations interactives
+- Rapport professionnel
+- Portfolio en ligne
+:::
+
+::: {style="padding: 20px;"}
+### 🚀 Perspectives
+
+- APIs temps réel
+- Machine Learning
+- Application Shiny
+- Open-source
+- Projets énergie verte
+:::
+:::
+
+---
+
+## ❓ Questions & Démonstration {background-color="#fff" background-image="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1920"}
+
+::: {style="text-align: center; padding: 50px; background: rgba(255,255,255,0.95); border-radius: 15px;"}
+### 🎤 Questions ?
+
+**Démonstration en direct des fonctionnalités WebR**
+
+<br>
+
+[🐙 Code source](https://github.com/Wiem-hemdi){.btn .btn-dark} 
+[📊 Rapport complet](rapport.html){.btn .btn-primary}
+[👤 Portfolio](portfolio.html){.btn .btn-success}
+:::
+
+---
+
+## 📚 Références {.smaller}
+
+::: {layout="[1,1]"}
+::: {}
+**📊 Sources de Données**
+
+- Our World in Data
+- Statistiques énergétiques UN
+- Banque Mondiale
+- AIE (Agence Internationale)
+- ONU Comtrade
+:::
+
+::: {}
+**🔧 Technologies**
+
+- WebR : R dans le navigateur
+- Quarto : Publication scientifique
+- tidyverse : Écosystème R
+- reveal.js : Présentations
+- GitHub Pages : Hébergement
+:::
+:::
+
+---
+
+## {background-color="#2E86AB" background-image="https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1920"}
+
+::: {style="background: rgba(255,255,255,0.95); padding: 60px; border-radius: 20px; text-align: center;"}
+### Merci pour votre attention ! 🙏
+
+<br>
+
+📧 **wiem.hemdi@polytechnicien.tn**  
+🔗 **Portfolio disponible en ligne**  
+📅 **Janvier 2026**
+
+<br>
+
+*Projet réalisé avec* 
+:::

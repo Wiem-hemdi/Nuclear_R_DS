@@ -1,0 +1,111 @@
+---
+title: "Import des données"
+format: html
+engine: knitr
+filters:
+  - webr
+---
+
+## Introduction
+
+L'analyse des tendances énergétiques mondiales nécessite des données fiables et structurées. L'énergie nucléaire représente une source d'énergie bas-carbone importante dans le mix énergétique mondial.
+
+**Objectif scientifique :**  
+Importer et explorer cinq jeux de données clés sur l'énergie nucléaire, le commerce et les indicateurs économiques associés.
+
+---
+
+## Chargement des packages
+
+```{webr-r}
+
+library(knitr)
+library(DT)
+library(dplyr)
+library(readr)
+
+cat("✅ Packages chargés avec succès\n")
+```
+
+---
+
+## Importation des données
+
+```{webr-r}
+
+# Chemin vers le dossier contenant les données
+data_path <- "data/"
+
+# Importation des cinq jeux de données
+nuclear_energy <- read_csv(paste0(data_path, "global-nuclear-energy-generation.csv"))
+energy_stats <- read_csv(paste0(data_path, "all_energy_statistics.csv"))
+gdp_data <- read_csv(paste0(data_path, "Countries-GDP-1960-2020.csv"))
+energy_investment <- read_csv(paste0(data_path, "W_E_I_World.csv"))
+nuclear_trade <- read_csv(paste0(data_path, "NUCLEAR_TRADE_ATLAS_DATA_2024.csv"))
+
+cat("✅ Importation terminée\n")
+cat("• Production nucléaire :", nrow(nuclear_energy), "lignes\n")
+cat("• Statistiques énergétiques :", nrow(energy_stats), "lignes\n")
+cat("• Données PIB :", nrow(gdp_data), "lignes\n")
+cat("• Investissements :", nrow(energy_investment), "lignes\n")
+cat("• Commerce nucléaire :", nrow(nuclear_trade), "lignes\n")
+```
+
+---
+
+## Résumé des datasets
+
+```{webr-r}
+
+# Création d'un résumé des datasets
+datasets_summary <- data.frame(
+  Dataset = c(
+    "global-nuclear-energy-generation.csv",
+    "all_energy_statistics.csv",
+    "Countries-GDP-1960-2020.csv",
+    "W_E_I_World.csv",
+    "NUCLEAR_TRADE_ATLAS_DATA_2024.csv"
+  ),
+  Description = c(
+    "Production annuelle nucléaire par pays",
+    "Métriques énergétiques complètes",
+    "Tendances du PIB par nation",
+    "Investissements énergétiques mondiaux",
+    "Statistiques du commerce nucléaire"
+  ),
+  Source = c(
+    "Our World in Data",
+    "Statistiques énergétiques de l'ONU",
+    "Banque Mondiale",
+    "AIE - Investissements énergétiques",
+    "ONU Comtrade"
+  ),
+  Lignes = c(
+    format(nrow(nuclear_energy), big.mark = " "),
+    format(nrow(energy_stats), big.mark = " "),
+    format(nrow(gdp_data), big.mark = " "),
+    format(nrow(energy_investment), big.mark = " "),
+    format(nrow(nuclear_trade), big.mark = " ")
+  ),
+  Colonnes = c(
+    ncol(nuclear_energy),
+    ncol(energy_stats),
+    ncol(gdp_data),
+    ncol(energy_investment),
+    ncol(nuclear_trade)
+  ),
+  stringsAsFactors = FALSE
+)
+
+# Affichage du tableau
+kable(datasets_summary, 
+      caption = "Résumé des jeux de données importés", 
+      align = c("l", "l", "l", "r", "r"))
+```
+
+---
+
+::: {.callout-tip}
+## Prochaine étape
+Les données sont maintenant chargées. Passez à l'étape de **nettoyage** dans `02_nettoyage.qmd`.
+:::

@@ -1,0 +1,28 @@
+/* Personnalisation des slides */
+.reveal h1, .reveal h2, .reveal h3 {
+  text-transform: none;
+}
+
+.reveal .btn {
+  padding: 12px 24px;
+  margin: 10px 5px;
+  border-radius: 8px;
+  text-decoration: none;
+  display: inline-block;
+  font-weight: 600;
+}
+
+.reveal .btn-dark {
+  background: #24292e;
+  color: white;
+}
+
+.reveal .btn-primary {
+  background: #2E86AB;
+  color: white;
+}
+
+.reveal .btn-success {
+  background: #06D6A0;
+  color: white;
+}

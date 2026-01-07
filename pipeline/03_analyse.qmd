@@ -1,0 +1,751 @@
+---
+title: "Analyse des données"
+format: html
+engine: knitr  # knitr pour le rendu
+filters:
+  - webr
+---
+
+## Introduction
+
+Cette section presente l'analyse approfondie des donnees nucleaires mondiales : tendances temporelles, correlations economiques, visualisations avancees et flux commerciaux internationaux.
+
+## Chargement des packages
+```{webr-r}
+
+#| label: setup
+
+library(readr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(plotly)
+library(knitr)
+library(stringr)
+library(scales)
+library(DT)
+```
+
+## Chargement des donnees nettoyees
+```{webr-r}
+
+#| label: import-nuclear
+
+# Importation
+df <- read_csv("outputs/clean_data/nuclear_production_clean.csv")
+nuclear_energy <- read_csv("outputs/clean_data/nuclear_production_clean.csv")
+energy_stats <- read_csv("outputs/clean_data/energy_stats_clean.csv")
+gdp_clean <- read_csv("outputs/clean_data/gdp_clean.csv")
+merged_final <- read_csv("outputs/clean_data/merged_final.csv")
+wei_clean <- read_csv("outputs/clean_data/wei_clean.csv")
+nuclear_trade <- read_csv("outputs/clean_data/nuclear_trade_clean.csv")
+merged_nuclear_energy <- read_csv("outputs/clean_data/merged_nuclear_energy.csv")
+
+cat("📊 Donnees chargees avec succes\n")
+cat("• Production nucleaire :", nrow(nuclear_energy), "lignes\n")
+cat("• Dataset final fusionne :", nrow(merged_final), "lignes\n")
+cat("• Investissements WEI :", nrow(wei_clean), "lignes\n")
+cat("• Commerce nucleaire :", nrow(nuclear_trade), "lignes\n")
+cat("• merged nuclear energy :", nrow(merged_nuclear_energy), "lignes\n")
+```
+
+## 1. Production Nucleaire Mondiale
+
+### 1.1 Evolution temporelle globale
+```{webr-r}
+
+#| label: Evolution temporelle globale
+
+# AJOUTEZ CETTE LIGNE ⬇️
+library(dplyr)
+
+# Calcul de la production mondiale par annee
+global_production <- nuclear_energy %>%
+  group_by(Year) %>%
+  summarise(
+    Total_Production = sum(Nuclear_TWh, na.rm = TRUE),
+    Country_Count = n_distinct(Country),
+    .groups = "drop"
+  )
+
+# Graphique d'evolution
+ggplot(global_production, aes(x = Year, y = Total_Production)) +
+  geom_line(color = "steelblue", size = 1.5) +
+  geom_point(color = "darkblue", size = 2) +
+  labs(
+    title = "Evolution de la Production Nucleaire Mondiale",
+    subtitle = "Production totale en TWh",
+    x = "Annee",
+    y = "Production (TWh)"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5, color = "gray40")
+  )
+```
+
+### 1.2 Production nucléaire moyenne mondiale
+```{webr-r}
+
+#| label: Production nucléaire moyenne mondiale
+
+# AJOUTEZ CETTE LIGNE ⬇️
+library(dplyr)
+
+# Production nucléaire moyenne mondiale
+global_stats <- global_production %>%
+  summarise(
+    Production_Moyenne = mean(Total_Production),
+    Production_Max = max(Total_Production),
+    Annee_Max = Year[which.max(Total_Production)],
+    Croissance_2020 = (Total_Production[Year == 2020] - Total_Production[Year == 2000]) / Total_Production[Year == 2000] * 100
+  )
+
+kable(global_stats, digits = 2, 
+      col.names = c("Moyenne (TWh)", "Maximum (TWh)", "Annee Max", "Croissance 2000-2020 (%)"))
+```
+
+### 1.3 Top 10 des producteurs mondiaux
+```{webr-r}
+
+#| label: top10-producers
+
+# AJOUTEZ CETTE LIGNE ⬇️
+library(dplyr)
+
+# Calcul des totaux par pays
+top_producers <- nuclear_energy %>%
+  group_by(Country) %>%
+  summarise(
+    Total_Production = sum(Nuclear_TWh, na.rm = TRUE),
+    Annees_Production = sum(Nuclear_TWh > 0),
+    Production_Moyenne = mean(Nuclear_TWh, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(Total_Production)) %>%
+  head(10)
+
+# Graphique en barres horizontales
+ggplot(top_producers, aes(x = reorder(Country, Total_Production), y = Total_Production)) +
+  geom_bar(stat = "identity", fill = "orange", alpha = 0.85) +
+  geom_text(aes(label = round(Total_Production, 0)), 
+            hjust = -0.1, size = 3.5) +
+  coord_flip() +
+  labs(
+    title = "Top 10 Producteurs Nucleaires (Total historique)",
+    x = "",
+    y = "Production Totale (TWh)"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5)
+  )
+```
+
+<!-- CONTINUEZ CE PATTERN POUR TOUS LES AUTRES BLOCS -->
+
+### 1.4 Distribution regionale
+```{webr-r}
+
+#| label: regional-distribution
+
+# AJOUTEZ CETTE LIGNE ⬇️
+library(dplyr)
+
+# Definition des regions
+regional_production <- nuclear_energy %>%
+  mutate(
+    Region = case_when(
+      Country %in% c("United States", "Canada", "Mexico") ~ "Amerique du Nord",
+      Country %in% c("France", "Germany", "United Kingdom", "Spain", "Sweden", "Ukraine", "Russia") ~ "Europe",
+      Country %in% c("China", "Japan", "South Korea", "India") ~ "Asie",
+      Country %in% c("Argentina", "Brazil") ~ "Amerique du Sud",
+      TRUE ~ "Autres"
+    )
+  ) %>%
+  group_by(Year, Region) %>%
+  summarise(Production = sum(Nuclear_TWh, na.rm = TRUE), .groups = "drop")
+
+# Graphique empile
+ggplot(regional_production, aes(x = Year, y = Production, fill = Region)) +
+  geom_area(alpha = 0.8, position = "stack") +
+  scale_fill_brewer(palette = "Set2") +
+  labs(
+    title = "Repartition Regionale de la Production Nucleaire 1885-2020",
+    x = "Annee",
+    y = "Production (TWh)",
+    fill = "Region"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    legend.position = "bottom"
+  )
+```
+
+<!-- Le reste du fichier suit le même pattern... -->
+
+## 2. Analyse du Mix Energetique
+### 2.1 Evolution des leaders mondiaux
+
+```{webr-r}
+
+#| label: leaders-evolution
+
+### 2.1 Production mondiale par source d'energie
+```{webr-r}
+
+#| label: energy-mix-global
+
+# Filtrage des principales sources
+if ("category" %in% names(energy_stats)) {
+  main_sources <- energy_stats %>%
+    filter(category %in% c(
+      "nuclear_electricity",
+      "hydro_electricity",
+      "solar_electricity",
+      "wind_electricity",
+      "natural_gas",
+      "coal"
+    ))
+  
+  # Aggregation mondiale par annee et source
+  global_energy_mix <- main_sources %>%
+    group_by(Year, category) %>%
+    summarise(
+      Total_Quantity = sum(quantity, na.rm = TRUE),
+      .groups = "drop"
+    )
+  
+  # Graphique empile
+  ggplot(global_energy_mix, aes(x = Year, y = Total_Quantity, fill = category)) +
+    geom_area(alpha = 0.8, position = "fill") +
+    scale_fill_brewer(palette = "Set3") +
+    scale_y_continuous(labels = percent) +
+    labs(
+      title = "Evolution du Mix Energetique Mondial",
+      subtitle = "Part relative de chaque source d'energie",
+      x = "Annee",
+      y = "Part de la production",
+      fill = "Source d'energie"
+    ) +
+    theme_minimal() +
+    theme(
+      plot.title = element_text(face = "bold", hjust = 0.5),
+      plot.subtitle = element_text(hjust = 0.5, color = "gray40"),
+      legend.position = "bottom"
+    )
+}
+```
+### 2.2 Part du nucleaire dans la production mondiale
+```{webr-r}
+
+#| label: nuclear-share-global
+
+if ("category" %in% names(energy_stats)) {
+  # Calcul de la part du nucleaire
+  nuclear_share <- energy_stats %>%
+    group_by(Year) %>%
+    summarise(
+      Total_Energy = sum(quantity, na.rm = TRUE),
+      Nuclear_Energy = sum(quantity[category == "nuclear_electricity"], na.rm = TRUE),
+      .groups = "drop"
+    ) %>%
+    mutate(
+      Nuclear_Share = ifelse(Total_Energy > 0, (Nuclear_Energy / Total_Energy) * 100, NA)
+    )
+  
+  # Graphique d'evolution
+  ggplot(nuclear_share, aes(x = Year, y = Nuclear_Share)) +
+    geom_line(color = "#2E86AB", size = 1.5, alpha = 0.8) +
+    geom_point(color = "#A23B72", size = 2.5) +
+    geom_smooth(method = "loess", se = FALSE, color = "#F18F01", linetype = "dashed", size = 1) +
+    labs(
+      title = "Part du Nucleaire dans la Production Energetique Mondiale",
+      x = "Annee",
+      y = "Part (%)"
+    ) +
+    theme_minimal() +
+    theme(
+      plot.title = element_text(face = "bold", hjust = 0.5),
+      panel.grid.minor = element_blank()
+    )
+}
+```
+### 2.3 Mix énergétique total de la France
+
+```{webr-r}
+
+#| label: france-analysis
+
+# Filtrer les données pour la France
+energy_france <- merged_nuclear_energy %>% 
+  filter(Country == "France")
+
+# Agrégation par catégorie
+classement_categories <- energy_france %>% 
+  group_by(category) %>% 
+  summarise(total_quantity = sum(quantity, na.rm = TRUE)) %>% 
+  arrange(desc(total_quantity))
+
+# Graphique en barres horizontales
+ggplot(classement_categories, aes(x = reorder(category, total_quantity), y = total_quantity, fill = category)) +
+  geom_bar(stat = "identity", alpha = 0.85) +
+  geom_text(aes(label = round(total_quantity, 0)), hjust = -0.1, size = 3.5) +
+  coord_flip() +
+  labs(
+    title = "Production Énergétique par Catégorie - France",
+    x = "Catégorie",
+    y = "Quantité Totale (TWh)"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    legend.position = "none"
+  )
+
+```
+### 2.4 Évolution mondiale par source d'énergie (TWh)
+
+```{webr-r}
+
+#| label: Évolution mondiale par source d'énergie
+
+# Définir les sources d'énergie
+sources <- c('nuclear_electricity', 'hydro', 'solar_electricity', 'wind_electricity')
+
+# Préparer un graphique pour l'évolution mondiale par source
+ggplot() +
+  lapply(sources, function(source) {
+    sub <- merged_nuclear_energy %>% filter(category == source) %>%
+      group_by(Year) %>%
+      summarise(total_quantity = sum(quantity, na.rm = TRUE))
+    geom_line(data = sub, aes(x = Year, y = total_quantity, color = source))
+  }) +
+  labs(title = "Évolution mondiale par source d'énergie (TWh)",
+       x = "Année",
+       y = "TWh") +
+  theme_minimal() +
+  scale_color_manual(values = c("nuclear_electricity"="red", 
+                                "hydro"="blue", 
+                                "solar_electricity"="orange", 
+                                "wind_electricity"="green"))
+```
+## 3. Analyse Economique : PIB vs Production Nucleaire
+#avant merged_final donc enregistrer avant le gdp countries 
+### 3.1 Top 10 PIB en 2020
+```{webr-r}
+
+# Sélection du Top 10 des pays par PIB en 2020
+top10 <- merged_final %>%
+  filter(Year == 2020) %>%
+  arrange(desc(GDP)) %>%
+  slice_head(n = 10)
+
+# Graphique interactif
+fig <- plot_ly(
+  data = top10,
+  x = ~Country,
+  y = ~GDP,
+  type = "bar"
+) %>%
+  layout(
+    title = "Top 10 PIB en 2020",
+    yaxis = list(
+      title = "PIB (USD)",
+      tickformat = ".2s"
+    ),
+    xaxis = list(title = "")
+  )
+
+fig
+
+```
+### 3.2 Top 5 pays par PIB dans la dernière année
+
+```{webr-r}
+
+#| label: major-producers-analysis
+#| fig-width: 12
+#| fig-height: 8
+
+# Selection des 8 principaux pays
+latest_year <- max(merged_final$Year, na.rm = TRUE)
+top_countries <- merged_final %>%
+  filter(Year == latest_year) %>%
+  arrange(desc(GDP)) %>%
+  slice_head(n = 5) %>%
+  pull(Country)
+df_compare <- merged_final %>%
+  filter(Country %in% top_countries)
+
+library(plotly)
+
+fig <- plot_ly(
+  data = df_compare,
+  x = ~Year,
+  y = ~GDP,
+  color = ~Country,
+  type = "scatter",
+  mode = "lines"
+) %>%
+  layout(
+    title = "Évolution du PIB (1960–2020)",
+    yaxis = list(
+      title = "PIB (USD)",
+      tickformat = ".2s"
+    ),
+    xaxis = list(title = "Année")
+  )
+
+fig
+
+```
+## 4. Investissements Energetiques Mondiaux
+
+### 4.1 Evolution des investissements
+```{webr-r}
+
+#| label: energy-investments
+
+# Verification des colonnes disponibles
+if ("Nuclear" %in% names(wei_clean)) {
+  investments_clean <- wei_clean %>%
+    select(Year, Nuclear, Renewables, Fossil = `Fossil-fuels`) %>%
+    pivot_longer(cols = c(Nuclear, Renewables, Fossil),
+                 names_to = "Type",
+                 values_to = "Investment") %>%
+    filter(!is.na(Investment))
+  
+  # Graphique
+  ggplot(investments_clean, aes(x = Year, y = Investment, color = Type)) +
+    geom_line(size = 1.5, alpha = 0.8) +
+    geom_point(size = 2.5) +
+    scale_color_manual(
+      values = c("Nuclear" = "#2E86AB", "Renewables" = "#06D6A0", "Fossil" = "#EF476F"),
+      labels = c("Nucleaire", "Renouvelables", "Fossiles")
+    ) +
+    labs(
+      title = "Evolution des Investissements Energetiques Mondiaux",
+      subtitle = "En milliards de dollars",
+      x = "Annee",
+      y = "Investissement (milliards USD)",
+      color = "Type d'energie"
+    ) +
+    theme_minimal() +
+    theme(
+      plot.title = element_text(face = "bold", hjust = 0.5),
+      plot.subtitle = element_text(hjust = 0.5, color = "gray40"),
+      legend.position = "bottom"
+    )
+}
+```
+### 4.2 Part du nucleaire dans les investissements
+```{webr-r}
+
+#| label: nuclear-investment-share
+
+if ("Nuclear" %in% names(wei_clean) && "Total-Billion-USD-2023-MER" %in% names(wei_clean)) {
+  wei_clean <- wei_clean %>%
+    mutate(Nuclear_Share = (Nuclear / `Total-Billion-USD-2023-MER`) * 100)
+  
+  ggplot(wei_clean, aes(x = Year, y = Nuclear_Share)) +
+    geom_line(color = "orange", size = 1.5) +
+    geom_point(color = "darkorange", size = 2) +
+    labs(
+      title = "Part des Investissements Nucleaires",
+      x = "Annee",
+      y = "Part (%)"
+    ) +
+    theme_minimal() +
+    theme(plot.title = element_text(face = "bold", hjust = 0.5))
+}
+```
+### 4.3 Ratios d'investissement
+```{webr-r}
+
+#| label: investment-ratios
+
+if ("Nuclear" %in% names(wei_clean) && "Renewables" %in% names(wei_clean)) {
+  ratios <- wei_clean %>%
+    mutate(
+      Renewables_Nuclear_Ratio = Renewables / Nuclear,
+      Fossil_Nuclear_Ratio = `Fossil-fuels` / Nuclear
+    ) %>%
+    select(Year, Renewables_Nuclear_Ratio, Fossil_Nuclear_Ratio) %>%
+    pivot_longer(cols = -Year, names_to = "Ratio", values_to = "Value")
+  
+  ggplot(ratios, aes(x = Year, y = Value, color = Ratio)) +
+    geom_line(size = 1.5, alpha = 0.8) +
+    geom_point(size = 2) +
+    scale_color_manual(
+      values = c("Renewables_Nuclear_Ratio" = "#06D6A0", "Fossil_Nuclear_Ratio" = "#EF476F"),
+      labels = c("Renouvelables/Nucleaire", "Fossiles/Nucleaire")
+    ) +
+    labs(
+      title = "Ratios d'Investissement Energetique",
+      subtitle = "Comparaison avec le nucleaire",
+      x = "Annee",
+      y = "Ratio",
+      color = ""
+    ) +
+    theme_minimal() +
+    theme(
+      plot.title = element_text(face = "bold", hjust = 0.5),
+      plot.subtitle = element_text(hjust = 0.5, color = "gray40"),
+      legend.position = "bottom"
+    )
+}
+```
+## 5. Commerce Nucleaire International
+### 5.1 Principaux flux commerciaux
+```{webr-r}
+
+#| label: nuclear-trade-analysis
+
+if (nrow(nuclear_trade) > 0) {
+  # Top exportateurs
+  top_exporters <- nuclear_trade %>%
+    filter(FLOW == "Export") %>%
+    group_by(REPORTER) %>%
+    summarise(
+      Total_Export = sum(`VALUE USD`, na.rm = TRUE),
+      Transaction_Count = n(),
+      .groups = "drop"
+    ) %>%
+    arrange(desc(Total_Export)) %>%
+    head(10)
+  
+  # Graphique exportateurs
+  ggplot(top_exporters, aes(x = reorder(REPORTER, Total_Export), y = Total_Export)) +
+    geom_bar(stat = "identity", fill = "#118AB2", alpha = 0.8) +
+    coord_flip() +
+    scale_y_continuous(labels = scales::comma) +
+    labs(
+      title = "Top 10 Exportateurs Nucleaires",
+      x = "",
+      y = "Valeur exportee (USD)"
+    ) +
+    theme_minimal() +
+    theme(
+      plot.title = element_text(face = "bold", hjust = 0.5)
+    )
+  
+  # Tableau des exportateurs
+  cat("\n📤 Top 5 exportateurs :\n")
+  kable(head(top_exporters, 5), digits = 0,
+        format.args = list(big.mark = " "),
+        col.names = c("Pays", "Valeur exportee (USD)", "Nombre transactions"))
+}
+```
+### 5.2 Relations commerciales bilaterales
+```{webr-r}
+
+#| label: bilateral-trade
+
+if (nrow(nuclear_trade) > 0) {
+  # Top importateurs
+  top_importers <- nuclear_trade %>%
+    filter(FLOW == "Import") %>%
+    group_by(REPORTER) %>%
+    summarise(
+      Total_Import = sum(`VALUE USD`, na.rm = TRUE),
+      Transaction_Count = n(),
+      .groups = "drop"
+    ) %>%
+    arrange(desc(Total_Import)) %>%
+    head(10)
+  
+  # Calcul des flux bilateraux
+  bilateral_flows <- nuclear_trade %>%
+    group_by(REPORTER, PARTNER, FLOW) %>%
+    summarise(
+      Total_Value = sum(`VALUE USD`, na.rm = TRUE),
+      .groups = "drop"
+    ) %>%
+    pivot_wider(names_from = FLOW, values_from = Total_Value, values_fill = 0) %>%
+    mutate(
+      Trade_Balance = Export - Import,
+      Total_Trade = Export + Import
+    )
+  
+  # Top relations commerciales
+  top_relationships <- bilateral_flows %>%
+    arrange(desc(Total_Trade)) %>%
+    head(10)
+  
+  cat("\n🤝 Top 10 relations commerciales nucleaires :\n")
+  kable(top_relationships, digits = 0,
+        format.args = list(big.mark = " "),
+        col.names = c("Exportateur", "Importateur", "Export (USD)", "Import (USD)", "Balance (USD)", "Total (USD)"))
+}
+```
+## 6. Indicateurs de Performance
+```{webr-r}
+
+#| label: performance-index
+
+# Calcul d'un indice composite
+performance_index <- nuclear_energy %>%
+  group_by(Country) %>%
+  summarise(
+    Total_Production = sum(Nuclear_TWh, na.rm = TRUE),
+    Years_Active = sum(Nuclear_TWh > 0),
+    Production_Growth = ifelse(
+      !is.na(Nuclear_TWh[Year == min(Year)]) && Nuclear_TWh[Year == min(Year)] > 0,
+      (Nuclear_TWh[Year == max(Year)] - Nuclear_TWh[Year == min(Year)]) / 
+      Nuclear_TWh[Year == min(Year)] * 100,
+      NA
+    ),
+    Production_Stability = ifelse(
+      mean(Nuclear_TWh, na.rm = TRUE) > 0,
+      sd(Nuclear_TWh, na.rm = TRUE) / mean(Nuclear_TWh, na.rm = TRUE),
+      NA
+    ),
+    .groups = "drop"
+  ) %>%
+  filter(Total_Production > 0 & !is.na(Production_Growth) & !is.na(Production_Stability)) %>%
+  mutate(
+    Score_Production = scale(Total_Production),
+    Score_Experience = scale(Years_Active),
+    Score_Growth = scale(Production_Growth),
+    Score_Stability = scale(-Production_Stability),
+    Performance_Index = (Score_Production + Score_Experience + Score_Growth + Score_Stability) / 4
+  ) %>%
+  arrange(desc(Performance_Index))
+
+# Top 15 par performance
+top_performers <- head(performance_index, 15)
+
+ggplot(top_performers, aes(x = reorder(Country, Performance_Index), y = Performance_Index)) +
+  geom_bar(stat = "identity", fill = "#F18F01", alpha = 0.8) +
+  coord_flip() +
+  labs(
+    title = "Indice de Performance Nucleaire par Pays",
+    subtitle = "Indice composite : production, experience, croissance, stabilite",
+    x = "",
+    y = "Score de performance (standardise)"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5, color = "gray40")
+  )
+
+cat("🏆 Top 10 pays par indice de performance nucleaire :\n")
+kable(head(performance_index, 10) %>% select(Country, Total_Production, Years_Active, Performance_Index),
+      digits = 2,
+      col.names = c("Pays", "Production Totale (TWh)", "Annees actives", "Score Performance"))
+```
+
+## 8. Synthese et Tableau de Bord
+```{webr-r}
+
+#| label: summary-dashboard
+
+# Calcul des indicateurs cles
+total_countries <- length(unique(nuclear_energy$Country[nuclear_energy$Nuclear_TWh > 0]))
+leader_country <- top_producers$Country[1]
+leader_production <- round(top_producers$Total_Production[1], 0)
+
+# Tableau recapitulatif
+summary_stats <- data.frame(
+  Indicateur = c(
+    "Production mondiale 2022 (TWh)",
+    "Part mondiale du nucleaire (%)",
+    "Nombre de pays producteurs",
+    "Croissance 2000-2022 (%)",
+    "Pays leader (production)",
+    "Production leader (TWh)",
+    "Investissement nucleaire 2023 (milliards USD)"
+  ),
+  Valeur = c(
+    round(global_production$Total_Production[global_production$Year == max(global_production$Year)], 0),
+    if (exists("nuclear_share")) {
+      round(nuclear_share$Nuclear_Share[nuclear_share$Year == max(nuclear_share$Year)], 1)
+    } else "NA",
+    total_countries,
+    if (nrow(global_production) > 0) {
+      latest_year <- max(global_production$Year)
+      base_year <- 2000
+      if (base_year %in% global_production$Year && latest_year %in% global_production$Year) {
+        growth <- (global_production$Total_Production[global_production$Year == latest_year] - 
+                   global_production$Total_Production[global_production$Year == base_year]) / 
+                  global_production$Total_Production[global_production$Year == base_year] * 100
+        round(growth, 1)
+      } else "NA"
+    } else "NA",
+    leader_country,
+    leader_production,
+    if ("Nuclear" %in% names(wei_clean)) {
+      latest_invest <- max(wei_clean$Year, na.rm = TRUE)
+      round(wei_clean$Nuclear[wei_clean$Year == latest_invest], 1)
+    } else "NA"
+  )
+)
+
+kable(summary_stats, 
+      caption = "Tableau de Bord - Energie Nucleaire Mondiale",
+      col.names = c("Indicateur", "Valeur"))
+
+# Graphique de synthese
+cat("\n📊 Tableau recapitulatif des datasets :\n")
+
+summary_df <- data.frame(
+  Dataset = c(
+    "Production nucleaire",
+    "Statistiques energetiques",
+    "PIB (pays uniquement)",
+    "Dataset fusionne final",
+    "Investissements WEI",
+    "Commerce nucleaire"
+  ),
+  Lignes = c(
+    nrow(nuclear_energy),
+    nrow(energy_stats),
+    nrow(gdp_clean),
+    nrow(merged_final),
+    nrow(wei_clean),
+    nrow(nuclear_trade)
+  ),
+  Colonnes = c(
+    ncol(nuclear_energy),
+    ncol(energy_stats),
+    ncol(gdp_clean),
+    ncol(merged_final),
+    ncol(wei_clean),
+    ncol(nuclear_trade)
+  ),
+  Période = c(
+    paste(min(nuclear_energy$Year), "-", max(nuclear_energy$Year)),
+    paste(min(energy_stats$Year), "-", max(energy_stats$Year)),
+    paste(min(gdp_clean$Year), "-", max(gdp_clean$Year)),
+    paste(min(merged_final$Year), "-", max(merged_final$Year)),
+    paste(min(wei_clean$Year), "-", max(wei_clean$Year)),
+    if (nrow(nuclear_trade) > 0) {
+      paste(min(nuclear_trade$YEAR, na.rm = TRUE), "-", max(nuclear_trade$YEAR, na.rm = TRUE))
+    } else "NA"
+  )
+)
+
+kable(summary_df, 
+      caption = "Resume des datasets utilises",
+      align = c("l", "r", "r", "c"))
+```
+<script type="module">
+import { WebR } from 'https://webr.r-wasm.org/latest/webr.mjs';
+const webR = new WebR();
+await webR.init();
+
+document.querySelectorAll('.webr-code').forEach(block => {
+  const btn = document.createElement('button');
+  btn.textContent = '▶ Exécuter';
+  btn.onclick = async () => {
+    const code = block.textContent;
+    const output = await webR.evalR(code);
+    console.log(output);
+  };
+  block.parentNode.insertBefore(btn, block);
+});
+</script>

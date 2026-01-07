@@ -1,0 +1,31 @@
+.profile-img {
+  width: 180px;
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+/* styles.css - Styles de base */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  color: #333;
+}
+
+h1, h2, h3 {
+  color: #2E86AB;
+  margin-top: 1.5em;
+}
+
+code {
+  background: #f5f5f5;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: 'Courier New', monospace;
+}
+
+pre {
+  background: #f8f9fa;
+  border-radius: 6px;
+  padding: 15px;
+  overflow-x: auto;
+  border: 1px solid #eaeaea;
+}

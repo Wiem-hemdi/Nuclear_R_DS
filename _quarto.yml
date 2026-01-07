@@ -1,0 +1,34 @@
+project:
+  type: website
+  output-dir: _site
+  execute-dir: project  # IMPORTANT : exécute depuis la racine
+
+website:
+  title: "Analyse Nucléaire - Portfolio Étudiant"
+  navbar:
+    left:
+      - text: "🏠 Accueil"
+        href: index.qmd
+      - text: "🎯 Présentation"
+        href: presentation.qmd
+      - text: "🎤 Présentation"
+        href: presentation_slides.qmd
+      - text: "📊 Pipeline"
+        menu:
+          - text: "1. Import Données"
+            href: pipeline/01_import.qmd
+          - text: "2. Nettoyage"
+            href: pipeline/02_nettoyage.qmd
+          - text: "3. Analyse"
+            href: pipeline/03_analyse.qmd
+
+execute:
+  enabled: true
+  freeze: auto
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+    toc-depth: 3

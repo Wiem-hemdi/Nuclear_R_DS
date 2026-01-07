@@ -1,0 +1,22 @@
+/.quarto/
+**/*.quarto_ipynb
+# Données volumineuses
+data/*.csv
+pipeline/outputs/
+outputs/
+_freeze/
+_site/
+
+
+# Quarto / cache
+_freeze/
+_site/
+
+# R
+.Rhistory
+.RData
+.Rproj.user/
+
+# OS
+.DS_Store
+Thumbs.db

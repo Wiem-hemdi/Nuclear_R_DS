@@ -1,0 +1,531 @@
+---
+title: "Nettoyage et préparation des données"
+format: html
+engine: knitr  # knitr pour le rendu
+filters:
+  - webr
+---
+
+## Introduction
+
+Cette étape transforme les données brutes en datasets propres et prêts pour l'analyse. Nous suivons une méthodologie rigoureuse de nettoyage, fusion et validation des données.
+
+---
+
+## Chargement des packages
+
+```{webr-r}
+
+library(readr)
+library(dplyr)
+library(tidyr)
+library(knitr)
+library(stringr)
+library(ggplot2)
+
+cat("✅ Packages chargés avec succès\n")
+```
+
+---
+
+## 1. Production nucléaire mondiale
+
+### 1.1 Importation et exploration
+
+```{webr-r}
+
+# Importation
+df <- read_csv("data/global-nuclear-energy-generation.csv")
+
+# Dimensions
+cat("📊 Dimensions :", nrow(df), "×", ncol(df), "\n")
+
+# Aperçu
+head(df) %>% kable(caption = "Aperçu des données brutes")
+```
+
+### 1.2 Nettoyage
+
+```{webr-r}
+
+library(dplyr)
+
+# Supprimer les doublons
+df <- df %>% distinct()
+
+# Vérifier les valeurs manquantes
+cat("🔍 Valeurs manquantes :\n")
+colSums(is.na(df))
+
+# Renommer les colonnes
+df <- df %>% 
+  rename(
+    Country = Entity,
+    Country_Code = Code,
+    Year = Year,
+    Nuclear_TWh = `Electricity from nuclear (TWh)`
+  )
+
+# Supprimer la colonne Country_Code
+df <- df %>% select(-Country_Code)
+
+# Extraire les pays uniques
+countries <- unique(df$Country)
+
+# Afficher le nombre pays 
+cat("\n🌍 Nombre de pays :", length(unique(df$Country)), "\n")
+
+# Afficher sous forme "style array"
+print(countries)
+
+# Aperçu après nettoyage
+head(df) %>% kable(caption = "Données nettoyées")
+```
+
+---
+
+## 2. Statistiques énergétiques
+
+### 2.1 Importation
+
+```{webr-r}
+
+df2 <- read_csv("data/all_energy_statistics.csv")
+
+cat("📊 Dimensions :", nrow(df2), "×", ncol(df2), "\n")
+
+# Aperçu
+head(df2)
+```
+
+### 2.2 Nettoyage
+
+```{webr-r}
+
+library(dplyr)
+
+# Supprimer les doublons
+df2 <- df2 %>% distinct()
+
+# Valeurs manquantes
+cat("🔍 Valeurs manquantes :\n")
+colSums(is.na(df2))
+
+# Supprimer les colonnes inutiles
+df2 <- df2 %>% 
+  select(-quantity_footnotes, -commodity_transaction)
+
+# Renommer
+df2 <- df2 %>% 
+  rename(
+    Country = country_or_area,
+    Year = year
+  )
+
+# Catégories disponibles
+cat("\n📂 Catégories :\n")
+print(unique(df2$category))
+```
+
+---
+
+## 3. Fusion : Nucléaire + Statistiques énergétiques
+
+```{webr-r}
+
+library(dplyr)
+
+# Fusion
+merged_df <- inner_join(df, df2, by = c("Country", "Year"))
+
+cat("✅ Taille après fusion :", nrow(merged_df), "×", ncol(merged_df), "\n")
+
+# Aperçu
+head(merged_df, 10) %>% 
+  kable(caption = "Données fusionnées")
+```
+
+---
+
+## 4. PIB des pays (1960-2020)
+
+### 4.1 Importation
+
+```{webr-r}
+
+df_gdp <- read_csv("data/Countries-GDP-1960-2020.csv")
+
+cat("📊 Dimensions :", nrow(df_gdp), "×", ncol(df_gdp), "\n")
+
+# Aperçu
+head(df_gdp)
+```
+
+### 4.2 Nettoyage et transformation
+
+```{webr-r}
+
+library(dplyr)
+library(tidyr)
+
+# Renommer
+df_gdp <- df_gdp %>% 
+  rename(
+    Country = `Country Name`,
+    Country_Code = `Country Code`
+  )
+
+# Supprimer Country_Code
+df_gdp <- df_gdp %>% select(-Country_Code)
+
+# Supprimer les doublons
+df_gdp <- df_gdp %>% distinct()
+
+# Valeurs manquantes
+cat("🔍 Valeurs manquantes :\n")
+colSums(is.na(df_gdp))
+
+# Transposer : format large → long
+gdp_melted <- df_gdp %>%
+  pivot_longer(
+    cols = -Country,
+    names_to = "Year",
+    values_to = "GDP"
+  ) %>%
+  mutate(
+    Year = as.integer(Year),
+    GDP = as.numeric(GDP)
+  )
+
+# Aperçu
+head(gdp_melted, 10) %>% 
+  kable(caption = "PIB en format long")
+```
+
+### 4.3 Filtrage des pays (exclure régions)
+
+```{webr-r}
+
+library(dplyr)
+
+# Régions à exclure
+regions_or_groups <- c(
+  "World", "Euro area", "High income", "Low & middle income",
+  "Upper middle income", "OECD members", "Sub-Saharan Africa",
+  "Post-demographic dividend", "Pre-demographic dividend",
+  "Early-demographic dividend", "Late-demographic dividend",
+  "East Asia & Pacific", "East Asia & Pacific (excluding high income)",
+  "Sub-Saharan Africa (excluding high income)",
+  "Latin America & the Caribbean (IDA & IBRD countries)",
+  "South Asia (IDA & IBRD)", "Sub-Saharan Africa (IDA & IBRD countries)",
+  "North America", "Middle income", "Lower middle income",
+  "IDA total", "IDA & IBRD total", "IDA only", "IDA blend",
+  "IBRD only", "Africa Eastern and Southern", "Africa Western and Central",
+  "South Asia", "East Asia & Pacific (IDA & IBRD countries)",
+  "Caribbean small states", "Heavily indebted poor countries (HIPC)"
+)
+
+# Garder uniquement les pays
+gdp_countries_only <- gdp_melted %>%
+  filter(!Country %in% regions_or_groups)
+
+cat("🌍 Nombre de pays :", length(unique(gdp_countries_only$Country)), "\n")
+
+# Années disponibles
+sorted_years <- sort(unique(gdp_countries_only$Year))
+cat("\n📅 Période :", min(sorted_years), "-", max(sorted_years), "\n")
+```
+
+---
+
+## 5. Fusion finale : Nucléaire + Énergie + PIB
+
+```{webr-r}
+
+library(dplyr)
+
+# Fusion
+merged_final <- inner_join(merged_df, gdp_countries_only, by = c("Country", "Year"))
+
+# Supprimer les doublons
+merged_final <- merged_final %>% 
+  distinct(Country, Year, .keep_all = TRUE)
+
+cat("✅ Taille finale :", nrow(merged_final), "×", ncol(merged_final), "\n")
+
+# Aperçu
+head(merged_final, 10) %>% 
+  kable(caption = "Dataset final fusionné")
+```
+
+---
+
+## 6. Investissements énergétiques mondiaux (WEI)
+
+### 6.1 Importation
+
+```{webr-r}
+
+df_WEI <- read_csv("data/W_E_I_World.csv")
+
+cat("📊 Dimensions :", nrow(df_WEI), "×", ncol(df_WEI), "\n")
+
+# Colonnes
+cat("\n📋 Colonnes :\n")
+names(df_WEI)
+```
+
+### 6.2 Nettoyage et transformation
+
+```{webr-r}
+
+library(dplyr)
+library(tidyr)
+library(stringr)
+
+# Supprimer les doublons
+df_WEI <- df_WEI %>% distinct()
+
+# Valeurs manquantes
+cat("🔍 Valeurs manquantes :\n")
+colSums(is.na(df_WEI))
+
+# Transposer : catégories en colonnes → années en lignes
+df_WEI <- df_WEI %>%
+  rename(Category = 1) %>%
+  pivot_longer(
+    cols = -Category,
+    names_to = "Year",
+    values_to = "Value"
+  ) %>%
+  mutate(Year = as.integer(Year))
+
+# Pivoter : catégories en colonnes
+df_WEI <- df_WEI %>%
+  pivot_wider(
+    names_from = Category,
+    values_from = Value
+  )
+
+# Nettoyer les noms de colonnes
+names(df_WEI) <- names(df_WEI) %>%
+  str_replace_all(" ", "-") %>%
+  str_replace_all(",", "") %>%
+  str_replace_all("\\(", "") %>%
+  str_replace_all("\\)", "")
+
+cat("\n📋 Colonnes après nettoyage :\n")
+print(names(df_WEI))
+```
+
+### 6.3 Conversion en numérique
+
+```{webr-r}
+
+library(dplyr)
+library(stringr)
+
+# Identifier les colonnes qui sont des listes
+list_cols <- sapply(df_WEI, is.list)
+if (any(list_cols)) {
+  cat("⚠️ Colonnes contenant des listes détectées :", 
+      paste(names(df_WEI)[list_cols], collapse = ", "), "\n")
+  
+  # Convertir les listes en chaînes de caractères
+  df_WEI <- df_WEI %>%
+    mutate(across(where(is.list), ~ sapply(., function(x) {
+      if (length(x) == 0) return(NA_character_)
+      if (length(x) == 1) return(as.character(x))
+      return(paste(x, collapse = ","))
+    })))
+}
+
+# Convertir toutes les colonnes sauf Year en numérique
+df_WEI <- df_WEI %>%
+  mutate(across(-Year, ~ {
+    cleaned <- str_replace_all(as.character(.), "[^0-9.-]", "")
+    as.numeric(cleaned)
+  }))
+
+# Supprimer les lignes où Year est NA
+df_WEI <- df_WEI %>%
+  filter(!is.na(Year))
+
+# Structure
+str(df_WEI)
+
+# Aperçu
+head(df_WEI) %>% 
+  kable(caption = "Investissements énergétiques mondiaux")
+```
+
+---
+
+## 7. Commerce nucléaire international
+
+### 7.1 Importation
+
+```{webr-r}
+
+df_trade <- read_csv("data/NUCLEAR_TRADE_ATLAS_DATA_2024.csv")
+
+cat("📊 Dimensions :", nrow(df_trade), "×", ncol(df_trade), "\n")
+
+# Aperçu
+head(df_trade)
+```
+
+### 7.2 Nettoyage
+
+```{webr-r}
+
+library(dplyr)
+
+# Supprimer les colonnes inutiles
+df_trade <- df_trade %>% 
+  select(
+    -`PARTNER ISO2`, 
+    -`PARTNER ISO3`, 
+    -`REPORTER ISO2`, 
+    -`REPORTER ISO3`, 
+    -`COMMODITY CODE`,
+    -`COMMODITY DESCRIPTION`,
+    -`NUCLEAR COMMODITY DESCRIPTION`
+  )
+
+# Supprimer les doublons
+df_trade <- df_trade %>% distinct()
+
+# Valeurs manquantes
+cat("🔍 Valeurs manquantes :\n")
+colSums(is.na(df_trade))
+
+# Convertir PERIOD en date
+df_trade <- df_trade %>%
+  mutate(
+    PERIOD = as.Date(as.character(PERIOD), format = "%Y%m%d"),
+    YEAR = as.integer(format(PERIOD, "%Y"))
+  )
+
+# Aperçu
+head(df_trade) %>% 
+  kable(caption = "Commerce nucléaire nettoyé")
+```
+
+---
+
+## 8. Résumé des datasets nettoyés
+
+```{webr-r}
+
+# Tableau récapitulatif
+summary_df <- data.frame(
+  Dataset = c(
+    "Production nucléaire",
+    "Statistiques énergétiques",
+    "PIB (pays uniquement)",
+    "Dataset fusionné final",
+    "Investissements WEI",
+    "Commerce nucléaire"
+  ),
+  Lignes = c(
+    nrow(df),
+    nrow(df2),
+    nrow(gdp_countries_only),
+    nrow(merged_final),
+    nrow(df_WEI),
+    nrow(df_trade)
+  ),
+  Colonnes = c(
+    ncol(df),
+    ncol(df2),
+    ncol(gdp_countries_only),
+    ncol(merged_final),
+    ncol(df_WEI),
+    ncol(df_trade)
+  ),
+  Période = c(
+    paste(min(df$Year), "-", max(df$Year)),
+    paste(min(df2$Year), "-", max(df2$Year)),
+    paste(min(gdp_countries_only$Year), "-", max(gdp_countries_only$Year)),
+    paste(min(merged_final$Year), "-", max(merged_final$Year)),
+    paste(min(df_WEI$Year), "-", max(df_WEI$Year)),
+    paste(min(df_trade$YEAR, na.rm = TRUE), "-", max(df_trade$YEAR, na.rm = TRUE))
+  )
+)
+
+kable(summary_df, 
+      caption = "Résumé des datasets nettoyés",
+      align = c("l", "r", "r", "c"))
+```
+
+---
+
+## 9. Validation de la qualité des données
+
+```{webr-r}
+
+library(dplyr)
+
+# Vérification des valeurs manquantes dans le dataset principal
+missing_check <- data.frame(
+  Variable = names(merged_final),
+  NA_count = colSums(is.na(merged_final)),
+  NA_percent = round(100 * colMeans(is.na(merged_final)), 2)
+) %>%
+  arrange(desc(NA_percent))
+
+kable(missing_check, 
+      caption = "Analyse des valeurs manquantes - Dataset final",
+      row.names = FALSE)
+
+# Statistiques descriptives
+cat("\n📊 Statistiques descriptives - Production nucléaire :\n")
+summary(merged_final$Nuclear_TWh)
+
+cat("\n📊 Statistiques descriptives - PIB :\n")
+summary(merged_final$GDP)
+```
+
+---
+
+## 10. Sauvegarde des données nettoyées
+
+```{webr-r}
+
+# Créer les dossiers
+dir.create("outputs/clean_data", recursive = TRUE, showWarnings = FALSE)
+
+# Sauvegarder
+write_csv(df, "outputs/clean_data/nuclear_production_clean.csv")
+write_csv(df2, "outputs/clean_data/energy_stats_clean.csv")
+write_csv(gdp_countries_only, "outputs/clean_data/gdp_clean.csv")
+write_csv(merged_final, "outputs/clean_data/merged_final.csv")
+write_csv(df_WEI, "outputs/clean_data/wei_clean.csv")
+write_csv(df_trade, "outputs/clean_data/nuclear_trade_clean.csv")
+write_csv(merged_df, "outputs/clean_data/merged_nuclear_energy.csv")
+
+cat("✅ Données sauvegardées dans outputs/clean_data/\n")
+cat("\nFichiers créés :\n")
+cat("• nuclear_production_clean.csv\n")
+cat("• energy_stats_clean.csv\n")
+cat("• gdp_clean.csv\n")
+cat("• merged_final.csv\n")
+cat("• wei_clean.csv\n")
+cat("• nuclear_trade_clean.csv\n")
+cat("• merged_nuclear_energy.csv\n")
+```
+
+---
+
+## Prochaines étapes
+
+::: {.callout-note}
+Les données sont maintenant prêtes pour l'analyse exploratoire dans `03_analyse.qmd` :
+
+- **Analyses temporelles** : Évolution de la production nucléaire mondiale
+- **Corrélations** : Relations entre PIB et production nucléaire
+- **Comparaisons internationales** : Top producteurs et investisseurs
+- **Flux commerciaux** : Cartographie des échanges nucléaires
+- **Modélisations prédictives** : Projections à 2050
+:::

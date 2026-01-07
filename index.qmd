@@ -1,0 +1,119 @@
+---
+title: "Portfolio"
+subtitle: "WIEM HEMDI | Ingénierie Data Science & Intelligence Artificielle"
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+    toc-location: left
+    number-sections: true
+---
+
+## 👤 Profil
+
+<div style="display:flex; align-items:center; gap:30px;">
+
+<div>
+<img src="images/wiem1.jpg" alt="WIEM HEMDI" width="180"
+style="border-radius:50%; box-shadow:0 4px 12px rgba(0,0,0,0.2);">
+</div>
+
+<div>
+
+### **WIEM HEMDI**  
+**Étudiante en Ingénierie Data Science & Intelligence Artificielle**
+
+Extrêmement motivée à développer constamment mes compétences et à évoluer
+professionnellement.  
+Je suis activement à la recherche d’un **Stage de Fin d’Études (PFE)** en
+Data Science et Intelligence Artificielle.
+
+</div>
+</div>
+
+---
+
+## 📞 Contact
+- 📱 **+216 93 753 648**
+- 📧 **wiem.hemdi@polytechnicien.tn**
+- 💼 [LinkedIn](https://www.linkedin.com/in/wiem-hemdi/)
+- 💻 [GitHub](https://github.com/Wiem-hemdi)
+
+---
+
+## 🎓 Éducation
+
+### **5ᵉ année – Ingénierie Data Science & IA**  
+*2024 – Présent*  
+**École Polytechnique de Sousse**
+
+### **Licence en Informatique**  
+*2021 – 2023*  
+**ISMAI – Kairouan**
+
+### **Baccalauréat en Sciences Expérimentales**  
+*2019 – 2020*  
+**Lycée Secondaire Sbikha**
+
+---
+
+## 🧪 Stages
+
+### **Stage d’été – Data Science**  
+**Pixelium, Sousse** | *Juillet 2025 – Août 2025*  
+Analyse de l’impact économique de l’énergie nucléaire à partir de données Kaggle.  
+**Outils :** Google Colab, Pandas, NumPy, Scikit-learn
+
+### **Stage de PFE – Développement Web**  
+**Hive12, Sousse** | *Février 2023 – Mai 2023*  
+Développement d’un site web de gestion des réservations d’un coworking space.  
+**Outils :** Django, JavaScript, Bootstrap, Docker, Git, Jira
+
+### **Stage Erasmus+**  
+**Université de León – Espagne** | *Mars 2023 – Juin 2023*  
+Vision artificielle et Machine Learning.  
+**Outils :** Python, Anaconda Navigator, Spyder
+
+---
+
+## 🧠 Projets Académiques
+- **NLP** : Chatbot intelligent pour l’interprétation de rapports médicaux *(Python)*  
+- **IA pour Jeux** : Quiz gamifié sur le code de la route *(MERN Stack)*  
+- **Machine Learning** : Prédiction de l’âge à partir de l’état du derme  
+  *(Python, Google Colab, Hadoop, PySpark)*
+
+---
+
+## 🤝 Activités Volontaires & Associatives
+- Team Leader – Projet socioculturel **Viv’eau**, 2024  
+- Conseillère en Développement – **JCI Sbikha**, 2024  
+- Vice-Présidente & Trésorière – **JCI Sbikha**, 2023  
+- Conseillère Media – **JCI Zone Midwest**, 2023  
+- Membre – **AIESEC Tunisie**, 2023  
+- Membre – **Association Assomboula**, 2022  
+
+---
+
+## 📜 Certifications
+- CyberOps Associate – Cisco (2024)  
+- CCNA1 – Cisco (2024)  
+- Python Intermédiaire – DataCamp (2023)  
+- R Intermédiaire – DataCamp (2025)  
+- EF SET English Certificate C1 (2023)
+
+---
+
+## 🌍 Langues
+- **Anglais** : Professionnel  
+- **Français** : Courant  
+- **Arabe** : Langue maternelle  
+
+---
+
+## 🚀 Conclusion
+Ce portfolio présente mon parcours académique, mes expériences, mes projets
+en data science et mon engagement associatif.  
+Il reflète ma motivation à appliquer l’intelligence artificielle à des
+problématiques réelles et à évoluer dans un environnement professionnel
+stimulant.
